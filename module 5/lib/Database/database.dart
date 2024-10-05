@@ -16,6 +16,7 @@ class DatabaseHelper {
   final columnTime = 'Task_Time';
   final columnDate = 'Task_date';
   final columnPriority = 'Task_Priority';
+  final columnDone = 'IsDone';
   Database? database1;
   DatabaseHelper._a();
   static final DatabaseHelper instance = DatabaseHelper._a();
@@ -37,7 +38,8 @@ class DatabaseHelper {
             $columnDescription TEXT NOT NULL, 
             $columnTime TEXT NOT NULL, 
             $columnDate TEXT NOT NULL,
-            $columnPriority TEXT NOT NULL
+            $columnPriority TEXT NOT NULL,
+            $columnDone TEXT NOT NULL
             )
           ''');
   }
@@ -65,6 +67,25 @@ class DatabaseHelper {
       row,
       where: '$columnId = ?',
       whereArgs: [id],
+    );
+  }
+
+  Future<void> updateTaskStatus(int taskId) async {
+    // Get a reference to the database
+    final db = await database;
+    int id = taskId;
+    // Define the values to update
+    Map<String, dynamic> updatedValues = {
+      'IsDone':
+          'true', // Assuming the 'isCompleted' column stores string values
+    };
+
+    // Update the task status for the given taskId
+    await db.update(
+      tablename_id, // Table name
+      updatedValues, // Values to update
+      where: '$columnId = ?', // Condition to specify the task
+      whereArgs: [id], // Arguments for the condition
     );
   }
 }

@@ -21,8 +21,10 @@ class TaskPage extends StatefulWidget {
 }
 
 class _TaskPageState extends State<TaskPage> {
+  Set<int> _selectedIndices = {};
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   List<Map<String, dynamic>> allTask = [];
+  List<bool> isTapped = [];
   DatabaseHelper myDBhelper = DatabaseHelper.instance;
   TimeOfDay? _selectedTime;
   DateTime? _selectedDate;
@@ -354,6 +356,12 @@ class _TaskPageState extends State<TaskPage> {
     Navigator.of(context).pop(); // Close the dialog box
   }
 
+  void done({
+    required int id,
+  }) async {
+    await myDBhelper.updateTaskStatus({'IsDone': 'true'} as int);
+  }
+
   void showinsertdialog(BuildContext context) {
     showDialog(
         context: context,
@@ -523,6 +531,46 @@ class _TaskPageState extends State<TaskPage> {
         });
   }
 
+  void _showAlertDialog(
+    BuildContext context,
+    int index,
+  ) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Alert"),
+          content: Text("Complate the task."),
+          actions: <Widget>[
+            TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text('Cancel')),
+            SizedBox(
+              width: 10,
+            ),
+            TextButton(
+              child: Text("OK"),
+              onPressed: () {
+                setState(() {
+                  // Toggle selection: Add or remove the index from the set
+                  if (_selectedIndices.contains(index)) {
+                    _selectedIndices.remove(index);
+                  } else {
+                    _selectedIndices.add(index);
+                  }
+                });
+                Navigator.pop(context);
+                //Navigator.of(context).pop(); // Close the dialog
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void insertTask() async {
     String taskName = TaskName.text;
     String taskDescription = TaskDiscription.text;
@@ -534,7 +582,7 @@ class _TaskPageState extends State<TaskPage> {
     String taskTime = _selectedTime != null
         ? _selectedTime!.format(context)
         : 'No Time Selected';
-
+    String done = 'false';
     // Priority is already a string
     String taskPriority = _taskPriority;
     Map<String, dynamic> row = {
@@ -542,7 +590,8 @@ class _TaskPageState extends State<TaskPage> {
       myDBhelper.columnDescription: taskDescription,
       myDBhelper.columnTime: taskTime,
       myDBhelper.columnDate: taskDate,
-      myDBhelper.columnPriority: taskPriority
+      myDBhelper.columnPriority: taskPriority,
+      myDBhelper.columnDone: done,
     };
     final id = await myDBhelper.insertTask(row);
 
@@ -602,6 +651,8 @@ class _TaskPageState extends State<TaskPage> {
         itemBuilder: (context, index) {
           final task = allTask[index];
           String color = allTask[index]['Task_Priority'];
+          String clr = allTask[index]['IsDone'];
+          bool value = clr.toLowerCase() == 'false';
 
           return Container(
             // Adds a shadow for better visual effect
@@ -623,6 +674,8 @@ class _TaskPageState extends State<TaskPage> {
               padding: const EdgeInsets.all(
                   10.0), // Adds padding inside the card for spacing
               child: ListTile(
+                tileColor:
+                    _selectedIndices.contains(index) ? Colors.grey : null,
                 contentPadding:
                     EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                 title: Text(
@@ -630,7 +683,12 @@ class _TaskPageState extends State<TaskPage> {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    decoration: _selectedIndices.contains(index)
+                        ? TextDecoration.lineThrough
+                        : TextDecoration.none,
+                    color: _selectedIndices.contains(index)
+                        ? Colors.black
+                        : Colors.black,
                   ),
                 ),
                 subtitle: Column(
@@ -641,7 +699,12 @@ class _TaskPageState extends State<TaskPage> {
                       '${allTask[index]['Task_Description']}',
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey[700],
+                        decoration: _selectedIndices.contains(index)
+                            ? TextDecoration.lineThrough
+                            : TextDecoration.none,
+                        color: _selectedIndices.contains(index)
+                            ? Colors.black
+                            : Colors.black,
                       ),
                     ),
                     SizedBox(height: 10),
@@ -654,7 +717,12 @@ class _TaskPageState extends State<TaskPage> {
                           '${allTask[index]['Task_Time']}',
                           style: TextStyle(
                             fontSize: 14,
-                            color: Colors.black54,
+                            decoration: _selectedIndices.contains(index)
+                                ? TextDecoration.lineThrough
+                                : TextDecoration.none,
+                            color: _selectedIndices.contains(index)
+                                ? Colors.black
+                                : Colors.black,
                           ),
                         ),
                       ],
@@ -669,7 +737,12 @@ class _TaskPageState extends State<TaskPage> {
                           '${allTask[index]['Task_date']}', // Assuming this is the date
                           style: TextStyle(
                             fontSize: 14,
-                            color: Colors.black54,
+                            decoration: _selectedIndices.contains(index)
+                                ? TextDecoration.lineThrough
+                                : TextDecoration.none,
+                            color: _selectedIndices.contains(index)
+                                ? Colors.black
+                                : Colors.black,
                           ),
                         ),
                       ],
@@ -701,13 +774,49 @@ class _TaskPageState extends State<TaskPage> {
                   ],
                 ),
                 onTap: () {
-                  // Handle the tap action
-                  print('Tapped on task: ${allTask[index]['Task_Name']}');
+                  _showAlertDialog(context, index);
+                  // _showContextMenu(context, index, value);
                 },
               ),
             ),
           );
         });
+  }
+
+  void _showContextMenu(BuildContext context, int index, bool value) {
+    bool val = value;
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(Icons.check),
+                title: Text('Mark as Complete'),
+                onTap: () {
+                  //_toggleTileColor(index);
+                  done(id: index);
+                  Navigator.pop(context); // Close the bottom sheet
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.delete),
+                title: Text('Delete Task'),
+                onTap: () {
+                  Navigator.pop(context); // Close the bottom sheet
+                  setState(() {
+                    allTask.removeAt(index); // Remove the task
+                  });
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   Widget buildGridView() {
