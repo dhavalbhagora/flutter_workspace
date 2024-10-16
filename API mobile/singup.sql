@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 16, 2024 at 12:30 PM
+-- Generation Time: Oct 16, 2024 at 12:57 PM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -20,26 +20,6 @@ SET time_zone = "+00:00";
 --
 -- Database: `mobileapp`
 --
-
--- --------------------------------------------------------
-
---
--- Table structure for table `products`
---
-
-CREATE TABLE `products` (
-  `id` int(100) NOT NULL,
-  `product_name` varchar(255) NOT NULL,
-  `product_price` varchar(255) NOT NULL,
-  `product_description` varchar(255) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `products`
---
-
-INSERT INTO `products` (`id`, `product_name`, `product_price`, `product_description`) VALUES
-(2, 'xyz', '1099', 'fgsdfsdvdcsds');
 
 -- --------------------------------------------------------
 
@@ -69,12 +49,6 @@ INSERT INTO `singup` (`id`, `firstname`, `lastname`, `email`, `password`, `gende
 --
 
 --
--- Indexes for table `products`
---
-ALTER TABLE `products`
-  ADD PRIMARY KEY (`id`);
-
---
 -- Indexes for table `singup`
 --
 ALTER TABLE `singup`
@@ -83,12 +57,6 @@ ALTER TABLE `singup`
 --
 -- AUTO_INCREMENT for dumped tables
 --
-
---
--- AUTO_INCREMENT for table `products`
---
-ALTER TABLE `products`
-  MODIFY `id` int(100) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `singup`
